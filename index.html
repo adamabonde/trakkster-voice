@@ -170,20 +170,28 @@
             color: var(--warm-brown);
         }
 
+        /* Style Vapi's button container to center it */
+        div[id^="vapi-"] {
+            position: fixed !important;
+            left: 50% !important;
+            top: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            z-index: 1000 !important;
+        }
+
         /* Style Vapi's button to match our design */
         [id^="vapi-btn"] {
-            position: static !important;
-            transform: none !important;
+            position: relative !important;
             width: 120px !important;
             height: 120px !important;
             border-radius: 50% !important;
-            margin: 0 auto !important;
-            display: block !important;
+            margin: 0 !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
         }
 
-        /* Hide our custom button since we'll use Vapi's */
+        /* Keep our custom button visible as backup */
         #voiceButton {
-            display: none !important;
+            display: flex !important;
         }
 
         @media (max-width: 768px) {
@@ -235,33 +243,7 @@
         var vapiInstance = null;
         const assistant = "8ee74fe3-1466-4a37-a40d-63c2448aee70";
         const apiKey = "7e9e9a5d-8724-436a-8dbf-e423d4acf1e1";
-        const buttonConfig = {
-            position: "bottom-center",
-            offset: "20px",
-            width: "120px",
-            height: "120px",
-            idle: {
-                color: `rgb(255, 202, 11)`, // Your yellow color
-                type: "round",
-                title: "Klicka för att börja",
-                subtitle: "",
-                icon: `https://unpkg.com/lucide-static@0.321.0/icons/mic.svg`,
-            },
-            loading: {
-                color: `rgb(255, 202, 11)`,
-                type: "round",
-                title: "Startar samtalet...",
-                subtitle: "",
-                icon: `https://unpkg.com/lucide-static@0.321.0/icons/loader-2.svg`,
-            },
-            active: {
-                color: `rgb(255, 107, 107)`, // Red when active
-                type: "round",
-                title: "Samtalet pågår...",
-                subtitle: "",
-                icon: `https://unpkg.com/lucide-static@0.321.0/icons/pause.svg`,
-            },
-        };
+        const buttonConfig = {}; // Empty - we'll hide Vapi's button
 
         (function (d, t) {
             var g = document.createElement(t),
@@ -282,17 +264,38 @@
 
                 console.log('Vapi instance created');
 
-                // Update status text based on call state
+                const voiceButton = document.getElementById('voiceButton');
                 const statusText = document.getElementById('statusText');
 
+                // Hide Vapi's button and use only ours
+                setTimeout(() => {
+                    const vapiContainer = document.querySelector('div[id^="vapi-"]');
+                    if (vapiContainer) {
+                        vapiContainer.style.display = 'none';
+                    }
+                }, 500);
+
+                // Make our button trigger Vapi
+                voiceButton.addEventListener('click', () => {
+                    const vapiButton = document.querySelector('[id^="vapi-btn"]');
+                    if (vapiButton) {
+                        vapiButton.click();
+                    }
+                });
+
+                // Update status text based on call state
                 vapiInstance.on('call-start', () => {
                     console.log('Call started');
+                    voiceButton.classList.add('active');
+                    voiceButton.textContent = '⏸️';
                     statusText.textContent = 'Samtalet är anslutet';
                     statusText.classList.add('active');
                 });
 
                 vapiInstance.on('call-end', () => {
                     console.log('Call ended');
+                    voiceButton.classList.remove('active');
+                    voiceButton.textContent = '🎤';
                     statusText.textContent = 'Samtalet avslutat. Klicka för att börja igen.';
                     statusText.classList.remove('active');
                 });
