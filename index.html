@@ -170,28 +170,16 @@
             color: var(--warm-brown);
         }
 
-        /* Style Vapi's button container to center it */
-        div[id^="vapi-"] {
-            position: fixed !important;
-            left: 50% !important;
-            top: 50% !important;
-            transform: translate(-50%, -50%) !important;
-            z-index: 1000 !important;
-        }
-
-        /* Style Vapi's button to match our design */
-        [id^="vapi-btn"] {
-            position: relative !important;
-            width: 120px !important;
-            height: 120px !important;
-            border-radius: 50% !important;
-            margin: 0 !important;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
-        }
-
-        /* Keep our custom button visible as backup */
-        #voiceButton {
-            display: flex !important;
+        /* Hide Vapi's button completely */
+        div[id^="vapi-"],
+        [id^="vapi-btn"],
+        button[id^="vapi"],
+        .vapi-btn,
+        #vapi-button {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
         }
 
         @media (max-width: 768px) {
@@ -267,19 +255,22 @@
                 const voiceButton = document.getElementById('voiceButton');
                 const statusText = document.getElementById('statusText');
 
-                // Hide Vapi's button and use only ours
-                setTimeout(() => {
-                    const vapiContainer = document.querySelector('div[id^="vapi-"]');
-                    if (vapiContainer) {
-                        vapiContainer.style.display = 'none';
-                    }
-                }, 500);
-
                 // Make our button trigger Vapi
                 voiceButton.addEventListener('click', () => {
+                    console.log('Custom button clicked');
+
+                    // Find Vapi button even if it's hidden
                     const vapiButton = document.querySelector('[id^="vapi-btn"]');
+                    console.log('Vapi button found:', vapiButton);
+
                     if (vapiButton) {
+                        // Temporarily make it clickable
+                        vapiButton.style.pointerEvents = 'auto';
                         vapiButton.click();
+                        console.log('Vapi button clicked');
+                    } else {
+                        console.error('Vapi button not found!');
+                        statusText.textContent = 'Ett fel uppstod. Försök ladda om sidan.';
                     }
                 });
 
