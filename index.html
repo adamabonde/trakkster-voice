@@ -255,28 +255,39 @@
                 const voiceButton = document.getElementById('voiceButton');
                 const statusText = document.getElementById('statusText');
 
-                // Make our button trigger Vapi
-                voiceButton.addEventListener('click', () => {
-                    console.log('Custom button clicked');
+                // Make our button start/stop calls directly via Vapi API
+                let callActive = false;
 
-                    // Find Vapi button even if it's hidden
-                    const vapiButton = document.querySelector('[id^="vapi-btn"]');
-                    console.log('Vapi button found:', vapiButton);
+                voiceButton.addEventListener('click', async () => {
+                    console.log('Custom button clicked, callActive:', callActive);
 
-                    if (vapiButton) {
-                        // Temporarily make it clickable
-                        vapiButton.style.pointerEvents = 'auto';
-                        vapiButton.click();
-                        console.log('Vapi button clicked');
+                    if (!callActive) {
+                        // Start call
+                        try {
+                            statusText.textContent = 'Startar samtalet...';
+                            await vapiInstance.start(assistant);
+                            callActive = true;
+                            console.log('Call started via API');
+                        } catch (error) {
+                            console.error('Error starting call:', error);
+                            statusText.textContent = 'Ett fel uppstod: ' + (error.message || 'Okänt fel');
+                        }
                     } else {
-                        console.error('Vapi button not found!');
-                        statusText.textContent = 'Ett fel uppstod. Försök ladda om sidan.';
+                        // Stop call
+                        try {
+                            vapiInstance.stop();
+                            callActive = false;
+                            console.log('Call stopped via API');
+                        } catch (error) {
+                            console.error('Error stopping call:', error);
+                        }
                     }
                 });
 
-                // Update status text based on call state
+                // Update UI based on call state
                 vapiInstance.on('call-start', () => {
-                    console.log('Call started');
+                    console.log('Call started event');
+                    callActive = true;
                     voiceButton.classList.add('active');
                     voiceButton.textContent = '⏸️';
                     statusText.textContent = 'Samtalet är anslutet';
@@ -284,7 +295,8 @@
                 });
 
                 vapiInstance.on('call-end', () => {
-                    console.log('Call ended');
+                    console.log('Call ended event');
+                    callActive = false;
                     voiceButton.classList.remove('active');
                     voiceButton.textContent = '🎤';
                     statusText.textContent = 'Samtalet avslutat. Klicka för att börja igen.';
@@ -293,6 +305,7 @@
 
                 vapiInstance.on('error', (error) => {
                     console.error('Vapi error:', error);
+                    callActive = false;
                     statusText.textContent = 'Ett fel uppstod: ' + (error.message || 'Okänt fel');
                 });
             };
