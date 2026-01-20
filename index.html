@@ -170,6 +170,22 @@
             color: var(--warm-brown);
         }
 
+        /* Style Vapi's button to match our design */
+        [id^="vapi-btn"] {
+            position: static !important;
+            transform: none !important;
+            width: 120px !important;
+            height: 120px !important;
+            border-radius: 50% !important;
+            margin: 0 auto !important;
+            display: block !important;
+        }
+
+        /* Hide our custom button since we'll use Vapi's */
+        #voiceButton {
+            display: none !important;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 1.5rem;
@@ -179,10 +195,9 @@
                 padding: 2rem 1.5rem;
             }
 
-            .voice-button {
-                width: 100px;
-                height: 100px;
-                font-size: 2.5rem;
+            [id^="vapi-btn"] {
+                width: 100px !important;
+                height: 100px !important;
             }
         }
     </style>
@@ -218,10 +233,35 @@
 
     <script>
         var vapiInstance = null;
-        var isActive = false;
         const assistant = "8ee74fe3-1466-4a37-a40d-63c2448aee70";
         const apiKey = "7e9e9a5d-8724-436a-8dbf-e423d4acf1e1";
-        const buttonConfig = {}; // Empty config - we'll hide the default button completely
+        const buttonConfig = {
+            position: "bottom-center",
+            offset: "20px",
+            width: "120px",
+            height: "120px",
+            idle: {
+                color: `rgb(255, 202, 11)`, // Your yellow color
+                type: "round",
+                title: "Klicka för att börja",
+                subtitle: "",
+                icon: `https://unpkg.com/lucide-static@0.321.0/icons/mic.svg`,
+            },
+            loading: {
+                color: `rgb(255, 202, 11)`,
+                type: "round",
+                title: "Startar samtalet...",
+                subtitle: "",
+                icon: `https://unpkg.com/lucide-static@0.321.0/icons/loader-2.svg`,
+            },
+            active: {
+                color: `rgb(255, 107, 107)`, // Red when active
+                type: "round",
+                title: "Samtalet pågår...",
+                subtitle: "",
+                icon: `https://unpkg.com/lucide-static@0.321.0/icons/pause.svg`,
+            },
+        };
 
         (function (d, t) {
             var g = document.createElement(t),
@@ -240,101 +280,26 @@
                     config: buttonConfig,
                 });
 
-                console.log('Vapi instance created:', vapiInstance);
+                console.log('Vapi instance created');
 
-                // Hide the default Vapi button completely since we have our own
-                const hideVapiButton = () => {
-                    const vapiButton = document.querySelector('[id^="vapi-btn"]');
-                    if (vapiButton) {
-                        vapiButton.style.display = 'none';
-                        vapiButton.parentElement.style.display = 'none';
-                        console.log('Vapi button hidden');
-                    }
-                };
-
-                // Try hiding immediately and after delays
-                hideVapiButton();
-                setTimeout(hideVapiButton, 100);
-                setTimeout(hideVapiButton, 500);
-                setTimeout(hideVapiButton, 1000);
-
-                const voiceButton = document.getElementById('voiceButton');
+                // Update status text based on call state
                 const statusText = document.getElementById('statusText');
 
-                // Event listeners
                 vapiInstance.on('call-start', () => {
                     console.log('Call started');
-                    isActive = true;
-                    voiceButton.classList.add('active');
-                    voiceButton.textContent = '⏸️';
                     statusText.textContent = 'Samtalet är anslutet';
                     statusText.classList.add('active');
                 });
 
                 vapiInstance.on('call-end', () => {
                     console.log('Call ended');
-                    isActive = false;
-                    voiceButton.classList.remove('active');
-                    voiceButton.textContent = '🎤';
                     statusText.textContent = 'Samtalet avslutat. Klicka för att börja igen.';
                     statusText.classList.remove('active');
-                });
-
-                vapiInstance.on('speech-start', () => {
-                    console.log('Assistant started speaking');
-                });
-
-                vapiInstance.on('speech-end', () => {
-                    console.log('Assistant finished speaking');
-                });
-
-                vapiInstance.on('volume-level', (volume) => {
-                    console.log('Volume level:', volume);
-                });
-
-                vapiInstance.on('message', (message) => {
-                    console.log('Message received:', message);
                 });
 
                 vapiInstance.on('error', (error) => {
                     console.error('Vapi error:', error);
                     statusText.textContent = 'Ett fel uppstod: ' + (error.message || 'Okänt fel');
-                    isActive = false;
-                    voiceButton.classList.remove('active');
-                    voiceButton.textContent = '🎤';
-                    statusText.classList.remove('active');
-                });
-
-                // Button click handler - trigger the Vapi button
-                voiceButton.addEventListener('click', () => {
-                    console.log('Custom button clicked, isActive:', isActive);
-
-                    // Try multiple selectors to find the Vapi button
-                    const selectors = [
-                        '[id^="vapi-btn"]',
-                        'button[class*="vapi"]',
-                        'div[id*="vapi"] button',
-                        '#vapi-button',
-                        '.vapi-button'
-                    ];
-
-                    let vapiButton = null;
-                    for (const selector of selectors) {
-                        vapiButton = document.querySelector(selector);
-                        if (vapiButton) {
-                            console.log('Found Vapi button with selector:', selector, vapiButton);
-                            break;
-                        }
-                    }
-
-                    if (vapiButton) {
-                        console.log('Clicking Vapi button');
-                        vapiButton.click();
-                    } else {
-                        console.error('Vapi button not found with any selector');
-                        console.log('All buttons on page:', document.querySelectorAll('button'));
-                        statusText.textContent = 'Ett fel uppstod. Prova den gröna knappen uppe till höger.';
-                    }
                 });
             };
 
