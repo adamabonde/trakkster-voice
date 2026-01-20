@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trakkster | Beteendeintervju</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Phudu:wght@700;900&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Vapi Web SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web@2.0.5/dist/index.umd.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --cream: #fff8dc;
+            --yellow: #ffca0b;
+            --dark: #000;
+            --taupe: #b19786;
+            --warm-brown: #a1806e;
+            --light-gray: #efeae5;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: var(--cream);
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            font-family: 'Phudu', sans-serif;
+            font-weight: 900;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            letter-spacing: -0.03em;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .subtitle {
+            font-size: clamp(1rem, 2vw, 1.25rem);
+            color: var(--warm-brown);
+            font-weight: 500;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 16px;
+            padding: 3rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .instructions {
+            margin-bottom: 2.5rem;
+            color: var(--warm-brown);
+            font-size: 1.125rem;
+            line-height: 1.8;
+        }
+
+        .voice-control {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .voice-button {
+            background-color: var(--yellow);
+            color: var(--dark);
+            border: none;
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            font-size: 3rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(255, 202, 11, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .voice-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 202, 11, 0.4);
+        }
+
+        .voice-button:active {
+            transform: scale(0.98);
+        }
+
+        .voice-button.active {
+            background-color: #ff6b6b;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 4px 16px rgba(255, 107, 107, 0.3);
+            }
+            50% {
+                box-shadow: 0 4px 24px rgba(255, 107, 107, 0.6);
+            }
+        }
+
+        .status-text {
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: var(--taupe);
+            min-height: 1.5rem;
+        }
+
+        .status-text.active {
+            color: #ff6b6b;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--taupe);
+            font-size: 0.875rem;
+        }
+
+        footer a {
+            color: var(--warm-brown);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .info-box {
+            background-color: var(--light-gray);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            font-size: 0.875rem;
+            color: var(--warm-brown);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1.5rem;
+            }
+
+            .main-content {
+                padding: 2rem 1.5rem;
+            }
+
+            .voice-button {
+                width: 100px;
+                height: 100px;
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Trakkster</h1>
+            <p class="subtitle">Välkommen till vår beteendeintervju</p>
+        </header>
+
+        <main class="main-content">
+            <div class="instructions">
+                <p>Tack för att du deltar i vår undersökning! Klicka på knappen nedan för att starta en röstkonversation med vår AI-assistent.</p>
+            </div>
+
+            <div class="voice-control">
+                <button id="voiceButton" class="voice-button" aria-label="Start voice conversation">
+                    🎤
+                </button>
+                <div id="statusText" class="status-text">Klicka för att börja</div>
+            </div>
+
+            <div class="info-box">
+                <p><strong>Tips:</strong> Se till att din mikrofon är aktiverad och att du befinner dig i en lugn miljö för bästa samtalskvalitet.</p>
+            </div>
+        </main>
+    </div>
+
+    <footer>
+        <p>Powered by <a href="https://www.trakkster.com" target="_blank">Trakkster</a></p>
+    </footer>
+
+    <script>
+        // Wait for Vapi SDK to load
+        let vapi;
+        let isActive = false;
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded');
+            console.log('window.Vapi:', window.Vapi);
+
+            const voiceButton = document.getElementById('voiceButton');
+            const statusText = document.getElementById('statusText');
+
+            // Check if Vapi SDK loaded
+            if (!window.Vapi) {
+                console.error('Vapi SDK not loaded!');
+                statusText.textContent = 'SDK-fel. Försök ladda om sidan.';
+                return;
+            }
+
+            try {
+                // Initialize Vapi with your public API key
+                vapi = new window.Vapi('7e9e9a5d-8724-436a-8dbf-e423d4acf1e1');
+                console.log('Vapi initialized:', vapi);
+
+                // Event listeners for Vapi events - set these up BEFORE button click
+                vapi.on('call-start', () => {
+                    console.log('Call started');
+                    statusText.textContent = 'Samtalet är anslutet';
+                });
+
+                vapi.on('call-end', () => {
+                    console.log('Call ended');
+                    isActive = false;
+                    voiceButton.classList.remove('active');
+                    voiceButton.textContent = '🎤';
+                    statusText.textContent = 'Samtalet avslutat. Klicka för att börja igen.';
+                    statusText.classList.remove('active');
+                });
+
+                vapi.on('speech-start', () => {
+                    console.log('Assistant started speaking');
+                });
+
+                vapi.on('speech-end', () => {
+                    console.log('Assistant finished speaking');
+                });
+
+                vapi.on('volume-level', (volume) => {
+                    console.log('Volume level:', volume);
+                });
+
+                vapi.on('message', (message) => {
+                    console.log('Message received:', message);
+                });
+
+                vapi.on('error', (error) => {
+                    console.error('Vapi error:', error);
+                    statusText.textContent = 'Ett fel uppstod: ' + (error.message || 'Okänt fel');
+                    isActive = false;
+                    voiceButton.classList.remove('active');
+                    voiceButton.textContent = '🎤';
+                    statusText.classList.remove('active');
+                });
+
+            } catch (error) {
+                console.error('Error initializing Vapi:', error);
+                statusText.textContent = 'Initialisering misslyckades';
+                return;
+            }
+
+            // Button click handler
+            voiceButton.addEventListener('click', async () => {
+                console.log('Button clicked, isActive:', isActive);
+
+                if (!isActive) {
+                    // Start conversation
+                    try {
+                        console.log('Starting call...');
+                        statusText.textContent = 'Startar samtalet...';
+
+                        await vapi.start('8ee74fe3-1466-4a37-a40d-63c2448aee70');
+
+                        console.log('Call started successfully');
+                        isActive = true;
+                        voiceButton.classList.add('active');
+                        voiceButton.textContent = '⏸️';
+                        statusText.textContent = 'Samtalet pågår...';
+                        statusText.classList.add('active');
+                    } catch (error) {
+                        console.error('Error starting conversation:', error);
+                        statusText.textContent = 'Fel vid start: ' + (error.message || 'Försök igen');
+                    }
+                } else {
+                    // Stop conversation
+                    console.log('Stopping call...');
+                    vapi.stop();
+                    isActive = false;
+                    voiceButton.classList.remove('active');
+                    voiceButton.textContent = '🎤';
+                    statusText.textContent = 'Klicka för att börja';
+                    statusText.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
