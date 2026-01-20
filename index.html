@@ -323,17 +323,16 @@
                     statusText.classList.remove('active');
                 });
 
-                // Button click handler
+                // Button click handler - use the built-in Vapi button functionality
                 voiceButton.addEventListener('click', () => {
                     console.log('Button clicked, isActive:', isActive);
-
-                    if (!isActive) {
-                        console.log('Starting call...');
-                        statusText.textContent = 'Startar samtalet...';
-                        vapiInstance.start();
+                    // Trigger the hidden Vapi button instead of calling start/stop directly
+                    const vapiButton = document.querySelector('[id^="vapi-btn"]');
+                    if (vapiButton) {
+                        vapiButton.click();
                     } else {
-                        console.log('Stopping call...');
-                        vapiInstance.stop();
+                        console.error('Vapi button not found');
+                        statusText.textContent = 'Ett fel uppstod. Försök ladda om sidan.';
                     }
                 });
             };
