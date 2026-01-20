@@ -10,8 +10,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Phudu:wght@700;900&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
 
-    <!-- Vapi Web SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web@2.0.5/dist/index.umd.js"></script>
 
     <style>
         * {
@@ -219,37 +217,79 @@
     </footer>
 
     <script>
-        // Wait for Vapi SDK to load
-        let vapi;
-        let isActive = false;
+        var vapiInstance = null;
+        var isActive = false;
+        const assistant = "8ee74fe3-1466-4a37-a40d-63c2448aee70";
+        const apiKey = "7e9e9a5d-8724-436a-8dbf-e423d4acf1e1";
+        const buttonConfig = {
+            position: "top-right",
+            offset: "40px",
+            width: "50px",
+            height: "50px",
+            idle: {
+                color: `rgb(93, 254, 202)`,
+                type: "pill",
+                title: "Have a quick question?",
+                subtitle: "Talk with our AI assistant",
+                icon: `https://unpkg.com/lucide-static@0.321.0/icons/phone.svg`,
+            },
+            loading: {
+                color: `rgb(93, 124, 202)`,
+                type: "pill",
+                title: "Connecting...",
+                subtitle: "Please wait",
+                icon: `https://unpkg.com/lucide-static@0.321.0/icons/loader-2.svg`,
+            },
+            active: {
+                color: `rgb(255, 0, 0)`,
+                type: "pill",
+                title: "Call is in progress...",
+                subtitle: "End the call.",
+                icon: `https://unpkg.com/lucide-static@0.321.0/icons/phone-off.svg`,
+            },
+        };
 
-        // Initialize when DOM is ready
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('DOM loaded');
-            console.log('window.Vapi:', window.Vapi);
+        (function (d, t) {
+            var g = document.createElement(t),
+                s = d.getElementsByTagName(t)[0];
+            g.src = "https://cdn.jsdelivr.net/gh/VapiAI/html-script-tag@latest/dist/assets/index.js";
+            g.defer = true;
+            g.async = true;
+            s.parentNode.insertBefore(g, s);
 
-            const voiceButton = document.getElementById('voiceButton');
-            const statusText = document.getElementById('statusText');
+            g.onload = function () {
+                console.log('Vapi SDK loaded');
 
-            // Check if Vapi SDK loaded
-            if (!window.Vapi) {
-                console.error('Vapi SDK not loaded!');
-                statusText.textContent = 'SDK-fel. Försök ladda om sidan.';
-                return;
-            }
-
-            try {
-                // Initialize Vapi with your public API key
-                vapi = new window.Vapi('7e9e9a5d-8724-436a-8dbf-e423d4acf1e1');
-                console.log('Vapi initialized:', vapi);
-
-                // Event listeners for Vapi events - set these up BEFORE button click
-                vapi.on('call-start', () => {
-                    console.log('Call started');
-                    statusText.textContent = 'Samtalet är anslutet';
+                vapiInstance = window.vapiSDK.run({
+                    apiKey: apiKey,
+                    assistant: assistant,
+                    config: buttonConfig,
                 });
 
-                vapi.on('call-end', () => {
+                console.log('Vapi instance created:', vapiInstance);
+
+                // Hide the default Vapi button since we have our own
+                setTimeout(() => {
+                    const vapiButton = document.querySelector('[id^="vapi-btn"]');
+                    if (vapiButton) {
+                        vapiButton.style.display = 'none';
+                    }
+                }, 100);
+
+                const voiceButton = document.getElementById('voiceButton');
+                const statusText = document.getElementById('statusText');
+
+                // Event listeners
+                vapiInstance.on('call-start', () => {
+                    console.log('Call started');
+                    isActive = true;
+                    voiceButton.classList.add('active');
+                    voiceButton.textContent = '⏸️';
+                    statusText.textContent = 'Samtalet är anslutet';
+                    statusText.classList.add('active');
+                });
+
+                vapiInstance.on('call-end', () => {
                     console.log('Call ended');
                     isActive = false;
                     voiceButton.classList.remove('active');
@@ -258,23 +298,23 @@
                     statusText.classList.remove('active');
                 });
 
-                vapi.on('speech-start', () => {
+                vapiInstance.on('speech-start', () => {
                     console.log('Assistant started speaking');
                 });
 
-                vapi.on('speech-end', () => {
+                vapiInstance.on('speech-end', () => {
                     console.log('Assistant finished speaking');
                 });
 
-                vapi.on('volume-level', (volume) => {
+                vapiInstance.on('volume-level', (volume) => {
                     console.log('Volume level:', volume);
                 });
 
-                vapi.on('message', (message) => {
+                vapiInstance.on('message', (message) => {
                     console.log('Message received:', message);
                 });
 
-                vapi.on('error', (error) => {
+                vapiInstance.on('error', (error) => {
                     console.error('Vapi error:', error);
                     statusText.textContent = 'Ett fel uppstod: ' + (error.message || 'Okänt fel');
                     isActive = false;
@@ -283,46 +323,29 @@
                     statusText.classList.remove('active');
                 });
 
-            } catch (error) {
-                console.error('Error initializing Vapi:', error);
-                statusText.textContent = 'Initialisering misslyckades';
-                return;
-            }
+                // Button click handler
+                voiceButton.addEventListener('click', () => {
+                    console.log('Button clicked, isActive:', isActive);
 
-            // Button click handler
-            voiceButton.addEventListener('click', async () => {
-                console.log('Button clicked, isActive:', isActive);
-
-                if (!isActive) {
-                    // Start conversation
-                    try {
+                    if (!isActive) {
                         console.log('Starting call...');
                         statusText.textContent = 'Startar samtalet...';
-
-                        await vapi.start('8ee74fe3-1466-4a37-a40d-63c2448aee70');
-
-                        console.log('Call started successfully');
-                        isActive = true;
-                        voiceButton.classList.add('active');
-                        voiceButton.textContent = '⏸️';
-                        statusText.textContent = 'Samtalet pågår...';
-                        statusText.classList.add('active');
-                    } catch (error) {
-                        console.error('Error starting conversation:', error);
-                        statusText.textContent = 'Fel vid start: ' + (error.message || 'Försök igen');
+                        vapiInstance.start();
+                    } else {
+                        console.log('Stopping call...');
+                        vapiInstance.stop();
                     }
-                } else {
-                    // Stop conversation
-                    console.log('Stopping call...');
-                    vapi.stop();
-                    isActive = false;
-                    voiceButton.classList.remove('active');
-                    voiceButton.textContent = '🎤';
-                    statusText.textContent = 'Klicka för att börja';
-                    statusText.classList.remove('active');
+                });
+            };
+
+            g.onerror = function() {
+                console.error('Failed to load Vapi SDK');
+                const statusText = document.getElementById('statusText');
+                if (statusText) {
+                    statusText.textContent = 'SDK-fel. Försök ladda om sidan.';
                 }
-            });
-        });
+            };
+        })(document, "script");
     </script>
 </body>
 </html>
