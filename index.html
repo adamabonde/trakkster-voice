@@ -273,8 +273,11 @@
                     const vapiButton = document.querySelector('[id^="vapi-btn"]');
                     if (vapiButton) {
                         vapiButton.style.display = 'none';
+                        console.log('Vapi button hidden:', vapiButton);
+                    } else {
+                        console.log('Vapi button not found yet');
                     }
-                }, 100);
+                }, 500);
 
                 const voiceButton = document.getElementById('voiceButton');
                 const statusText = document.getElementById('statusText');
@@ -323,16 +326,35 @@
                     statusText.classList.remove('active');
                 });
 
-                // Button click handler - use the built-in Vapi button functionality
+                // Button click handler - trigger the Vapi button
                 voiceButton.addEventListener('click', () => {
-                    console.log('Button clicked, isActive:', isActive);
-                    // Trigger the hidden Vapi button instead of calling start/stop directly
-                    const vapiButton = document.querySelector('[id^="vapi-btn"]');
+                    console.log('Custom button clicked, isActive:', isActive);
+
+                    // Try multiple selectors to find the Vapi button
+                    const selectors = [
+                        '[id^="vapi-btn"]',
+                        'button[class*="vapi"]',
+                        'div[id*="vapi"] button',
+                        '#vapi-button',
+                        '.vapi-button'
+                    ];
+
+                    let vapiButton = null;
+                    for (const selector of selectors) {
+                        vapiButton = document.querySelector(selector);
+                        if (vapiButton) {
+                            console.log('Found Vapi button with selector:', selector, vapiButton);
+                            break;
+                        }
+                    }
+
                     if (vapiButton) {
+                        console.log('Clicking Vapi button');
                         vapiButton.click();
                     } else {
-                        console.error('Vapi button not found');
-                        statusText.textContent = 'Ett fel uppstod. Försök ladda om sidan.';
+                        console.error('Vapi button not found with any selector');
+                        console.log('All buttons on page:', document.querySelectorAll('button'));
+                        statusText.textContent = 'Ett fel uppstod. Prova den gröna knappen uppe till höger.';
                     }
                 });
             };
