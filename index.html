@@ -150,6 +150,38 @@
             color: #ff6b6b;
         }
 
+        .survey-button {
+            background-color: var(--dark);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Space Grotesk', sans-serif;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 1rem;
+        }
+
+        .survey-button:hover {
+            background-color: var(--warm-brown);
+            transform: translateY(-2px);
+        }
+
+        .survey-button:active {
+            transform: translateY(0);
+        }
+
+        .survey-hint {
+            font-size: 0.875rem;
+            color: var(--taupe);
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
         footer {
             text-align: center;
             padding: 2rem;
@@ -221,7 +253,9 @@
                 <button id="voiceButton" class="voice-button" aria-label="Start voice conversation">
                     🎤
                 </button>
-                <div id="statusText" class="status-text">Klicka för att börja</div>
+                <div id="statusText" class="status-text">Klicka på mikrofonen för att börja</div>
+                <p class="survey-hint">När intervjun är klar, klicka på knappen nedan:</p>
+                <a href="https://survey.synoint.com/sv/p/946433/184321" class="survey-button">Tillbaka till enkäten</a>
             </div>
 
             <div class="info-box">
